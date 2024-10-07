@@ -1,0 +1,176 @@
+[
+{
+	"uri": "/",
+	"title": "Deploy network infrastructure with VPC",
+	"tags": [],
+	"description": "",
+	"content": "Triển khai hạ tầng mạng với Amazon Virtual Private Cloud (Amazon VPC) Tổng quan Trong bài workshop này, chúng ta sẽ thực hành về Amazon VPC. Tìm hiểu các khái niệm và thực hành về VPC Peering, Transit Gateway. Thực hiện cấu hình Site to Site VPN để kết nối môi trường on-premise tới môi trường VPC của AWS. Tìm hiểu các khái niệm và thực hành về VPC Flow Logs, CloudWatch.\nNội dung Giới thiệu Các bước chuẩn bị Tạo Peering Connection Tạo Transit Gateway Kết nối với Datacenter Giám sát mạng Dọn dẹp tài nguyên "
+},
+{
+	"uri": "/1-introduce/",
+	"title": "Giới thiệu",
+	"tags": [],
+	"description": "",
+	"content": "Giới thiệu Trong bài workshop này, chúng ta sẽ thực hành về Amazon VPC. Tìm hiểu các khái niệm và thực hành về VPC Peering, Transit Gateway. Thực hiện cấu hình Site to Site VPN để kết nối môi trường on-premise tới môi trường VPC của AWS. Tìm hiểu các khái niệm và thực hành về VPC Flow Logs, CloudWatch.\n"
+},
+{
+	"uri": "/2-prerequiste/2.1-createiamrole/",
+	"title": "Tạo IAM Role",
+	"tags": [],
+	"description": "",
+	"content": "Tạo IAM Role Trong bước này chúng ta sẽ tiến hành tạo IAM Role. Trong IAM Role này sẽ được gán policy AmazonSSMManagedInstanceCore, đây là policy cho phép EC2 instance có thể giao tiếp với Session Manager.\nTruy cập giao diện AWS Management Console.\nNhấn vào tên tài khoản ở góc trên bên phải và chọn Security credentials.\nTrong trường hợp không thấy menu Security credentials, bạn có thể click vào biểu tượng tìm kiếm và điền IAM. Sau đó click vào dịch vụ IAM để truy cập vào giao diện quản lý dịch vụ IAM.\nTrong giao diện IAM. Chọn Roles Chọn Create role Trong giao diện Select trusted entity. Chọn AWS service Chọn EC2 Chọn Next Tại thanh tìm kiếm, nhập AmazonSSMManagedInstanceCore và nhấn enter để tìm kiếm policy này. Click chọn policy AmazonSSMManagedInstanceCore Click Next Đặt tên cho role: SSM-Role. Click Create Role. "
+},
+{
+	"uri": "/5-datacenterconnectivity/5.1-createdatacenter/",
+	"title": "Tạo môi trường datacenter",
+	"tags": [],
+	"description": "",
+	"content": "Tạo môi trường datacenter Trước khi khởi tạo và cấu hình kết nối VPN, chúng ta cần tạo môi trường giả lập của datacenter. Bạn cần phải tải CloudFormation Template và tiến hành giải nén.\nĐăng nhập vào AWS Management Console. Tìm CloudFormation Chọn CloudFormation Trong giao diện CloudFormation. Chọn Create stack Chọn With new resources (standard) Trong trang Create stack chọn các thông số sau: Prerequisite - Prepare template: Prepare template: Choose an existing template Specify template: Template source: Upload a template file Chọn Choose file rồi chọn tập tin create-vpc-on-premise.yml mà chúng ta vừa tải về trước đó Chọn Next Trong trang Specify stack details, nhập tên cho stack (NetworkingOnPremisesVPC) và sau đó chọn Next. Tại trang Configure stack options, chọn Next. Tại trang Review and create, kiểm tra và chọn Submit ở cuối trang. Tạo Stack thành công. Truy cập vào AWS Management Console. Tìm VPC Chọn VPC Vào Your VPCs và bạn sẽ thấy thông tin VPC bạn vừa mới tạo. "
+},
+{
+	"uri": "/6-networkmonitoring/6.1-vpcflowlogs/",
+	"title": "Thiết lập VPC Flow logs",
+	"tags": [],
+	"description": "",
+	"content": "Trong phần này, bạn sẽ tạo flow log cho tất cả traffic trong VPC A và được lưu trong destination log group NetworkingFlowLogsGroup.\nThiết lập VPC Flow logs Truy cập vào CloudWatch. Chọn Logs rồi chọn Log group Chọn Create log group Trong giao diện Create log group. Log group name: nhập NetworkingFlowLogsGroup Chọn Create Truy cập vào IAM. Chọn Policies Chọn Create policy Trong giao diện Specify permissions. Chọn JSON Thay thế đoạn sau vào Policy editor {\r\u0026#34;Version\u0026#34;: \u0026#34;2012-10-17\u0026#34;,\r\u0026#34;Statement\u0026#34;: [\r{\r\u0026#34;Effect\u0026#34;: \u0026#34;Allow\u0026#34;,\r\u0026#34;Action\u0026#34;: [\r\u0026#34;logs:CreateLogGroup\u0026#34;,\r\u0026#34;logs:CreateLogStream\u0026#34;,\r\u0026#34;logs:PutLogEvents\u0026#34;,\r\u0026#34;logs:DescribeLogGroups\u0026#34;,\r\u0026#34;logs:DescribeLogStreams\u0026#34;\r],\r\u0026#34;Resource\u0026#34;: \u0026#34;*\u0026#34;\r}\r]\r} Chọn Next Trong giao diện Review and create. Policy name: nhập NetworkFlowLogPolicy Chọn Create policy Truy cập vào IAM. Chọn Roles Chọn Create role Trong giao diện Select trusted entity. Trusted entity type: chọn Custom trust policy Thay thế đoạn sau vào Custom trust policy {\r\u0026#34;Version\u0026#34;: \u0026#34;2012-10-17\u0026#34;,\r\u0026#34;Statement\u0026#34;: [\r{\r\u0026#34;Effect\u0026#34;: \u0026#34;Allow\u0026#34;,\r\u0026#34;Principal\u0026#34;: {\r\u0026#34;Service\u0026#34;: \u0026#34;vpc-flow-logs.amazonaws.com\u0026#34;\r},\r\u0026#34;Action\u0026#34;: \u0026#34;sts:AssumeRole\u0026#34;\r}\r]\r} Chọn Next Trong giao diện Add permissions. Tìm NetworkFlowLogPolicy trên thanh tìm kiếm rồi chọn Chọn Next Trong giao diện Name, review, and create. Role name: nhập NetworkFlowLogRole Chọn Create role Truy cập vào VPC. Chọn Your VPCs Chọn VPC A Chọn tab Flow Logs Chọn Create flow log Trong giao diện Create flow log. Name: nhập Flow logs A Maximum aggregation interval: chọn 1 minute Destination log group: chọn NetworkingFlowLogsGroup IAM role: chọn NetworkFlowLogRole Chọn Create flow log Sau khi tạo xong Flow logs A. Destination name: click vào NetworkingFlowLogsGroup bạn sẽ được điều hướng đến CloudWatch Flow log data sẽ được xuất vào Log groups và mỗi network interface sẽ có một Log streams duy nhất trong Log groups. Log streams chứa các bản ghi flow log. Bạn có thể tạo nhiều flow log xuất dữ liệu vào cùng một log group. Click vào một network interface (ENI) Log streams để xem bản ghi. Để tìm log thích hợp, hãy đảm bảo sử dụng ENI của VPC A Private AZ1 Server (trên EC2 Instance - Networking tab cuộn xuống sẽ thấy danh sách Network interfaces). Bạn cũng có thể làm tương tự các bước trên để lấy tất cả traffic trong VPC B, VPC C và VPC On Premises. "
+},
+{
+	"uri": "/4-transitgateway/4.1-deletevpcpeering/",
+	"title": "Xóa Peering connections",
+	"tags": [],
+	"description": "",
+	"content": "Xóa Peering connections Đăng nhập vào AWS Management Console. Tìm VPC Chọn VPC Ở VPC Management Console, điều hướng đến Peering connections. Chọn VPC A \u0026lt;-\u0026gt; VPC B Chọn Actions Chọn Delete peering connection Trong giao diện Delete peering connection. Tick vào Delete related route table entries Nhập delete Chọn Delete Peering connections VPC A \u0026lt;-\u0026gt; VPC B đã được xóa. Lặp lại các bước để xóa Peering connections VPC A \u0026lt;-\u0026gt; VPC C. "
+},
+{
+	"uri": "/2-prerequiste/",
+	"title": "Các bước chuẩn bị",
+	"tags": [],
+	"description": "",
+	"content": "Các bước chuẩn bị Ở phần này, bạn sẽ sử dụng CloudFormation Template để tạo hạ tầng mạng với 3 VPC. Mỗi VPC sẽ có public subnets, private subnets, internet gateway, route table, NAT gateway, security groups và EC2 instance. NAT gateway sẽ tốn phí nên cần xóa khi không sử dụng nữa.\nChúng ta sẽ xây dựng hạ tầng mạng theo mô hình bên dưới.\nNội dung Tạo IAM Role Khởi tạo CloudFormation Templates "
+},
+{
+	"uri": "/6-networkmonitoring/6.2-cloudwatch/",
+	"title": "Cấu hình CloudWatch",
+	"tags": [],
+	"description": "",
+	"content": "Trong phần này, bạn sẽ tạo dashboard để xem một tập hợp metrics và tạo alarm sẽ tự động gửi thông báo về email khi đạt đến ngưỡng mà bạn chỉ định.\nCấu hình CloudWatch Truy cập vào CloudWatch. Chọn All Metrics Chọn EC2 Chọn Per-Instance Metrics. Ta tìm kiếm theo từ khóa network. Chọn metric NetworkIn và NetworkOut của VPC A Private AZ1 Server. Click vào pencil icon ở góc trên cùng bên trái của biểu đồ và nhập lên là VPC A Private AZ1 Server Network In/Out. Rồi click vào Apply. Chọn Actions rồi chọn Add to dashboard - Improved. Chọn Create new. Nhập NetworkingEC2 và chọn Create. Chọn Add to dashboard. Biểu đồ thống kê Network In/Out bằng bytes cho EC2 instance sẽ được thêm vào một dashboard mới. Để thêm thống kê Packets In/Out, hãy nhấn vào dấu + ở góc trên cùng bên phải. Chọn Number rồi chọn Next. Chọn EC2. Chọn Per-Instance Metrics. Bạn tìm kiếm theo từ khóa NetworkPackets và chọn 2 dòng dành cho VPC A Private AZ1 Server rồi nhấn Create Widget. Nhấn Save để lưu dashboard. Bây giờ bạn sẽ tạo alarm để theo dõi lượng traffic truy cập mà EC2 instance nhận được và gửi thông báo qua email nếu đạt ngưỡng. Chọn Alarms rồi chọn All alarms Chọn Create alarm Chọn Select metric. Chọn EC2. Chọn Per-instance Metrics. Bạn tìm kiếm theo từ khóa NetworkIn và chọn VPC B Private AZ1 Server rồi nhấn Select metric. Trong giao diện Specify metric and conditions. Statistic: chọn Maximum Period: chọn 1 minute Define the threshold value: nhập 1000000 Click Next Trong giao diện Configure actions. Send a notification to the following SNS topic: chọn Create new topic Create a new topic: nhập NetworkingAlarmTopic Email endpoints that will receive the notification: nhập email, alarm sẽ thông báo cho bạn thông qua email này Chọn Create topic Chọn Next. Trong giao diện Add name and description. Alarm name: nhập NetworkingAlarm Chọn Next Chọn Create alarm. Alarm đã tạo thành công. Truy cập vào email của bạn, mở tin nhắn từ \u0026ldquo;AWS Notifications\u0026rdquo; rồi xác nhận đăng ký. Điều này sẽ được yêu cầu để đảm bảo bạn nhận được thông báo. Bây giờ khi đạt đến ngưỡng mà bạn đã chỉ định ở trên thì alarm sẽ thông báo với bạn thông qua email này. "
+},
+{
+	"uri": "/2-prerequiste/2.2-createcloudformationtemplates/",
+	"title": "Khởi tạo CloudFormation Templates",
+	"tags": [],
+	"description": "",
+	"content": "Khởi tạo CloudFormation Templates Trước hết bạn cần phải tải CloudFormation Template và tiến hành giải nén.\nTrong workshop này, chúng ta sẽ sử dụng Region Singapore (ap-southeast-1). Nếu bạn muốn sử dụng Region khác, hãy đảm bảo chuyển Region về Region bạn muốn sử dụng trước khi tạo các tài nguyên liên quan tới workshop.\nĐăng nhập vào AWS Management Console. Tìm CloudFormation Chọn CloudFormation Trong giao diện CloudFormation. Chọn Create stack Trong trang Create stack chọn các thông số sau: Prerequisite - Prepare template: Prepare template: Choose an existing template Specify template: Template source: Upload a template file Chọn Choose file rồi chọn tập tin create-multi-vpc.yaml mà chúng ta vừa tải về trước đó Chọn Next Trong trang Specify stack details, nhập tên cho stack (NetworkingMultiVPC) và sau đó chọn Next. Tại trang Configure stack options, chọn Next. Tại trang Review and create, kiểm tra và chọn Submit ở cuối trang. Tạo Stack thành công. Truy cập vào AWS Management Console. Tìm VPC Chọn VPC Vào Your VPCs và bạn sẽ thấy thông tin VPC bạn vừa mới tạo. "
+},
+{
+	"uri": "/3-vpcpeering/3.1-testconnect/",
+	"title": "Kiểm tra kết nối",
+	"tags": [],
+	"description": "",
+	"content": "Kiểm tra kết nối Đăng nhập vào AWS Management Console. Tìm EC2 Chọn EC2 Truy cập vào trang EC2. Chọn Instances Chọn VPC A Private AZ1 Server Chọn Connect Ở trang Connect to instance. Chọn Session Manager Chọn Connect Kết nối thành công. Chúng ta hãy thử ping địa chỉ IP Private của VPC B Private AZ1 Server. Bạn sẽ thấy ping không thành công do hai VPC là tách biệt và chưa có kết nối với nhau. ping \u0026#39;Private IPv4 addresses\u0026#39; -c5 Chúng ta cũng có thể ping thử đến địa chỉ IP Private của VPC C Private AZ1 Server và bạn cũng sẽ thấy ping không thành công. "
+},
+{
+	"uri": "/3-vpcpeering/3.2-createpeering/",
+	"title": "Tạo Peering Connection",
+	"tags": [],
+	"description": "",
+	"content": "Tạo Peering Connection Đăng nhập vào AWS Management Console. Tìm VPC Chọn VPC Ở VPC Management Console. Chọn Peering connections Chọn Create peering connection Ở trang Create peering connection. Name: nhập VPC A \u0026lt;-\u0026gt; VPC B Select a local VPC to peer with: chọn VPC A Select another VPC to peer with: chọn VPC B Chọn Create peering connection Tạo Peering Connection thành công. Nhấn Actions và chọn Accept Request. Chọn Accept request. Thiết lập thành công. Lặp lại các bước trên để tạo VPC A \u0026lt;-\u0026gt; VPC C peering connection. "
+},
+{
+	"uri": "/4-transitgateway/4.2-createtransitgateway/",
+	"title": "Tạo Transit Gateway",
+	"tags": [],
+	"description": "",
+	"content": "Tạo Transit Gateway Đăng nhập vào AWS Management Console. Tìm VPC Chọn VPC Chọn Transit gateways ở thanh bên trái và chọn Create transit gateway. Ở trang Create transit gateway. Name tag: nhập TGW Description: nhập Transit Gateway Configure the transit gateway: bỏ chọn Default route table association và Default route table propagation Chọn Create transit gateway Tạo Transit Gateway thành công. "
+},
+{
+	"uri": "/5-datacenterconnectivity/5.2-createtgwattachments/",
+	"title": "Tạo Transit Gateway Attachments",
+	"tags": [],
+	"description": "",
+	"content": "Tạo Transit Gateway Attachments Mở VPC Management Console, chọn Transit gateway attachments ở thanh bên trái và chọn Create transit gateway attachment. Ở trang Create transit gateway attachment. Transit gateway ID: chọn ID của Transite Gateway mà ta đã tạo Attachment type: chọn VPN Customer Gateway: chọn New IP Address: nhập Public IPv4 address của On-Premises Customer Gateway Routing options: chọn Static Chọn Create transit gateway attachment Tạo Transit gateway attachments thành công. Lưu ý: Theo như mô hình kiến trúc, Customer Gateway sẽ nằm ở VPC trên môi trường onpremise. Hiện tại chúng ta đang làm là khai báo với AWS rằng chúng ta sẽ có 1 Customer Gateway với địa chỉ IP public là địa chỉ public của On-Premises Customer Gateway nằm trong VPC On Premises.\nChọn Site-to-Site VPN connections. Chọn VPN connections chúng ta vừa tạo Chọn Download configuration Trong giao diện Download configuration. Vendor: chọn OpenSwan Platform: chọn OpenSwan Software: chọn OpenSwan 2.6.38+ IKE version: chọn ikev1 Chọn Download Lưu file cấu hình, chúng ta sẽ sử dụng nó cho bài lab này. Bạn dựa vào file cấu hình được cung cấp, bạn thay đổi các thông tin phù hợp và cấu hình cho thiết bị của mình. Vì chúng ta đang sử dụng định tuyến tĩnh cho kết nối VPN của mình nên chúng ta sẽ cần tạo tuyến đường để sẵn sàng gửi và nhận traffic được phân phối thông qua Transit Gateway đến mạng của datacenter. Chọn Transit gateway route tables Chọn TGW-RT Chọn tab Routes Chọn Create static route Trong giao diện Create static route. CIDR: nhập 10.3.0.0/16 của VPC On Premises Choose attachment: chọn VPN attachment chúng ta mà vừa tạo Chọn Create static route Static route đã được tạo thành công. Sau đó chuyển qua tab Propagations, nhấn Create propagation. Đính kèm VPN attachment. Quá trình propagation báo Transit Gateway biết route table của VPC nào sẽ nhận các data packet từ Transit Gateway. Hoàn thành đính. Sau đó chuyển qua tab Associations, nhấn Create association. Đính kèm VPN attachment. Quá trình association báo Transit Gateway biết route table của VPC nào sẽ gửi các data packet tới Transit Gateway. Hoàn thành đính. "
+},
+{
+	"uri": "/3-vpcpeering/3.3-updateroutetable/",
+	"title": "Cấu hình Route tables",
+	"tags": [],
+	"description": "",
+	"content": "Cấu hình Route tables Chọn Route tables ở thanh bên trái. Chọn VPC A Private Route Table Chọn Routes Chọn Edit routes Chọn Add route. Destination: nhập 10.1.0.0/16 - Target: chọn Peering Connection - VPC A \u0026lt;-\u0026gt; VPC B Destination: nhập 10.2.0.0/16 - Target: chọn Peering Connection - VPC A \u0026lt;-\u0026gt; VPC C Chọn Save changes Route table đã được cập nhật. Như vậy, bạn đã điều hướng các query cho block 10.1.0.0/16 (CIDR của VPC B) và 10.2.0.0/16 (CIDR của VPC C) đi tới Peering connections mà bạn đã tạo. Lặp lại thêm peering connection cho route table VPC B Private Route Table. Chọn Add route. Destination: nhập 10.0.0.0/16 - Target: chọn Peering connection - VPC A \u0026lt;-\u0026gt; VPC B Nhấn Save changes Route table đã được cập nhật. Lặp lại thêm peering connection cho route table VPC C Private Route Table. Chọn Add route. Destination: nhập 10.0.0.0/16 - Target: chọn Peering connection - VPC A \u0026lt;-\u0026gt; VPC C Nhấn Save changes Route table đã được cập nhật. Bây giờ chúng ta hãy thử ping từ VPC A Private AZ1 Server đến private IP của VPC B Private AZ1 Server và chúng ta sẽ thấy đã ping thành công. Chúng ta cũng có thể thử ping từ VPC A Private AZ1 Server đến private IP của VPC C Private AZ1 Server và ping cũng thành công. Mặc dù phương pháp này có thể được sử dụng để kết nối nhiều VPC nhưng việc quản lý nhiều kết nối point-to-point có thể phức tạp trên quy mô lớn. Một phương pháp khác có khả năng mở rộng hơn là sử dụng AWS Transit Gateway. Ở phần sau chúng ta sẽ thiết lập Transit Gateway (TGW) để kết nối ba VPC.\n"
+},
+{
+	"uri": "/5-datacenterconnectivity/5.3-setupvpnconnection/",
+	"title": "Cấu hình VPN Connection",
+	"tags": [],
+	"description": "",
+	"content": "Cấu hình VPN Connection Đăng nhập vào AWS Management Console. Tìm EC2 Chọn EC2 Truy cập vào trang EC2. Chọn Instances Chọn On-Premises Customer Gateway Chọn Connect Ở trang Connect to instance. Chọn Session Manager Chọn Connect Cài đặt OpenSwan. sudo yum install openswan -y Cấu hình file /etc/sysctl.conf. sudo nano /etc/sysctl.conf Chuyển xuống vị trí cuối cùng trong file cấu hình rồi thêm đoạn sau vào cuối tập tin cấu hình. net.ipv4.ip_forward = 1\rnet.ipv4.conf.default.rp_filter = 0\rnet.ipv4.conf.default.accept_source_route = 0 Ấn Ctrl+O, Enter, Ctrl+X để lưu file cấu hình. Sau đó để áp dụng cấu hình này, chạy lệnh: sudo sysctl -p Mở file cấu hình mà bạn đã tải xuống từ phần trước. Tiếp theo chúng ta sẽ cấu hình file /etc/ipsec.d/aws.conf. sudo vi /etc/ipsec.d/aws.conf Ấn phím i để tiến hành chỉnh sửa file. Sao chép và dán conn Tunnel1 và conn Tunnel2 từ hướng dẫn Bước 4 của file cấu hình đã tải xuống. Đảm bảo bạn thực hiện các thay đổi sau: Đối với Amazon Linux thì chúng ta sẽ xóa dòng auth=esp trong file cấu hình gốc. Thay thế aes128-sha1;modp1024 trên dòng phase2alg bằng aes_gcm. Thay thế aes128-sha1;modp1024 trên dòng ike bằng aes256-sha2_256;dh14. Vì chúng ta chỉ có 1 public IP address cho Customer Gateway nên sẽ cần thêm cấu hình overlapip=yes. leftid: IP Public Address phía Onpremise (ở đây chính là IP public của On-Premises Customer Gateway). right: IP Public Address phía AWS VPN Tunnel. leftsubnet: CIDR của Mạng phía Local. rightsubnet: CIDR của Mạng phía Private Subnet trên AWS. conn Tunnel1\rauthby=secret\rauto=start\rleft=%defaultroute\rleftid=13.229.122.160\rright=18.136.181.114\rtype=tunnel\rikelifetime=8h\rkeylife=1h\rphase2alg=aes_gcm\rike=aes256-sha2_256;dh14\rkeyingtries=%forever\rkeyexchange=ike\rleftsubnet=\u0026lt;LOCAL NETWORK\u0026gt;\rrightsubnet=\u0026lt;REMOTE NETWORK\u0026gt;\rdpddelay=10\rdpdtimeout=30\rdpdaction=restart_by_peer\roverlapip=yes\rconn Tunnel2\rauthby=secret\rauto=start\rleft=%defaultroute\rleftid=13.229.122.160\rright=18.136.181.114\rtype=tunnel\rikelifetime=8h\rkeylife=1h\rphase2alg=aes_gcm\rike=aes256-sha2_256;dh14\rkeyingtries=%forever\rkeyexchange=ike\rleftsubnet=\u0026lt;LOCAL NETWORK\u0026gt;\rrightsubnet=\u0026lt;REMOTE NETWORK\u0026gt;\rdpddelay=10\rdpdtimeout=30\rdpdaction=restart_by_peer\roverlapip=yes Ấn phím ESC và tổ hợp :x để lưu file cấu hình. Cấu hình file /etc/ipsec.d/aws.secrets. sudo vi /etc/ipsec.d/aws.secrets Ấn phím i để tiến hành chỉnh sửa file. Thêm đoạn sau vào file cấu hình (đoạn cấu hình này ở bước 5 của IPSEC Tunnel #1 và IPSEC Tunnel #2). 13.229.122.160 18.136.181.114: PSK \u0026#34;HHF1TslQzXbeGXVZx_l9SiuSAHg1XHEA\u0026#34;\r13.229.122.160 52.77.21.130: PSK \u0026#34;Cjbzt4W65ZVKOENSsvs85pdokmWVcxsP\u0026#34; Ấn phím ESC và tổ hợp :x để lưu file cấu hình. Enable và start Openswan. sudo systemctl enable ipsec.service\rsudo ipsec start Nếu status tunnel vẫn chưa chạy đúng, sau khi kiểm tra và cập nhật cấu hình bạn sẽ cần chạy lệnh để restart lại service network và IPsec. sudo service network restart\rsudo service ipsec restart Truy cập giao diện VPC. Chọn Site-to-Site VPN connections bạn sẽ thấy trạng thái của Tunnel là Up, có nghĩa là chúng ta đã cấu hình thành công. Truy cập giao diện VPC. Chọn Route tables ở thanh bên trái Chọn VPC A Private Route Table Chọn Routes Chọn Edit routes Chọn Add route. Destination: nhập 10.3.0.0/16 - Target: chọn Transit Gateway - VPC A Attachment Chọn Save changes Route table đã được cập nhật. Lặp lại tương tự để thêm Transit Gateway cho route table VPC B Private Route Table. Lặp lại tương tự để thêm Transit Gateway cho route table VPC C Private Route Table. Bây giờ chúng ta hãy thử ping từ On-Premises Customer Gateway đến private IP của VPC A Private AZ1 Server và thấy ping thành công. ping \u0026#39;Private IPv4 addresses\u0026#39; -c5 Chúng ta cũng có thể thử ping từ On-Premises Customer Gateway đến private IP của VPC B Private AZ1 Server và VPC C Private AZ1 Server hoặc ngược lại. "
+},
+{
+	"uri": "/3-vpcpeering/",
+	"title": "Tạo Peering Connection",
+	"tags": [],
+	"description": "",
+	"content": "Tạo Peering Connection VPC Peering là tính năng giúp kết nối hai hay nhiều VPC để các tài nguyên bên trong hai VPC đó có thể liên lạc trực tiếp với nhau mà không cần phải thông qua Internet (đi qua mạng của AWS), góp phần gia tăng tính bảo mật cho VPC.\nVPC Peering là kết nối cần tạo 1 : 1 giữa hai VPC.\nVPC Peering Connection là một kết nối mạng giữa 2 VPC cho phép bạn định tuyến traffic giữa chúng, sử dụng địa chỉ private IPv4 hoặc IPv6. Những instance ở trong 1 trong 2 VPC có thể giao tiếp với nhau như chúng đang nằm cùng 1 mạng.\nTrong phần này, chúng tôi sẽ thiết lập VPC peering giữa VPC A và VPC B, VPC A và VPC C.\nDải CIDR của ba VPC phải khác nhau. Bạn không thể tạo VPC peering connection giữa các VPC có dải IPv4 CIDR giống nhau hoặc chồng chéo.\nNội dung Kiểm tra kết nối Tạo Peering Connection Cấu hình Route tables "
+},
+{
+	"uri": "/4-transitgateway/4.3-createtgwattachments/",
+	"title": "Tạo Transit Gateway Attachments",
+	"tags": [],
+	"description": "",
+	"content": "Tạo Transit Gateway Attachments Chọn Transit Gateway Attachments ở thanh bên trái và chọn Create Transit Gateway Attachment. Ở trang Create transit gateway attachment. Name tag: nhập VPC A Attachment Transit Gateway ID: chọn ID của Transite Gateway mà ta vừa tạo Attachment type: chọn VPC để định dạng đối tượng được gán là VPC VPC ID: chọn VPC A Chọn Create transit gateway attachment Tạo VPC A Attachment cho VPC A thành công. Lặp lại các bước tương tự để tạo VPC B Attachment cho VPC B và VPC C Attachment cho VPC C. "
+},
+{
+	"uri": "/4-transitgateway/",
+	"title": "Tạo Transit Gateway",
+	"tags": [],
+	"description": "",
+	"content": "Tạo Transit Gateway Transit Gateway (TGW) được dùng để kết nối các VPC và mạng on-premises thông qua một hub trung tâm. Điều này đơn giản hoá mạng và kết thúc các mối quan hệ định tuyến phức tạp. Nó hoạt động như một cloud router - mỗi kết nối mới chỉ thực hiện 1 lần.\nTransit Gateway Attachment là một công cụ để gán các subnet của từng VPC cần kết nối với nhau vào một TGW đã được khởi tạo. Transit Gateway Attachment hoạt động ở quy mô Availability Zone (AZ-level). Trong VPC, khi một subnet ở một AZ có Transit Gateway Attachment với một TGW, các subnet khác trong cùng AZ đều có thể kết nối tới TGW đó.\nTrong phần trước, chúng ta đã tạo Peering Connection để tạo điều kiện kết nối giữa hai VPC. Mặc dù phương pháp này có thể được sử dụng để kết nối nhiều VPC với nhau nhưng việc quản lý nhiều kết nối point-to-point có thể trở nên cồng kềnh trên quy mô lớn.\nTrong phần này, chúng ta sẽ loại bỏ các Peering connections rồi chúng ta sẽ thiết lập Transit Gateway và sử dụng nó để kết nối VPC A, VPC B và VPC C.\nNội dung Xóa Peering connections Tạo Transit Gateway Tạo Transit Gateway Attachments Tạo Transit Gateway Route Tables Cấu hình Route tables "
+},
+{
+	"uri": "/4-transitgateway/4.4-createtgwroutetable/",
+	"title": "Tạo Transit Gateway Route Tables",
+	"tags": [],
+	"description": "",
+	"content": "Tạo Transit Gateway Route Tables Ở phần này, bạn sẽ tạo Route Table cho Transit Gateway để Transit Gateway biết rằng những VPC attachment nào sẵn sàng gửi và nhận traffic được phân phối thông qua Transit Gateway.\nChọn Transit gateway route tables ở thanh bên trái và chọn Create transit gateway route table. Trong giao diện Create transit gateway route table. Name tag: nhập TGW-RT Transit gateway ID: chọn transit gateway mà bạn đã tạo Chọn Create transit gateway route table Tạo Transit gateway route tables thành công. Sau khi Transit gateway route table trở nên sẵn sàng, tick vào route table chúng ta mới tạo, chọn tab Associations và nhấn Create association. Lần lượt đính từng VPC. Quá trình association báo Transit Gateway biết route table của VPC nào sẽ gửi các data packet tới Transit Gateway. Hoàn tất đính cả 3 VPC. Sau đó chuyển qua tab Propagations, nhấn Create propagation. Lần lượt đính từng VPC. Quá trình propagation báo Transit Gateway biết route table của VPC nào sẽ nhận các data packet từ Transit Gateway. Hoàn tất đính cả 3 VPC. "
+},
+{
+	"uri": "/4-transitgateway/4.5-updateroutetable/",
+	"title": "Cấu hình Route tables",
+	"tags": [],
+	"description": "",
+	"content": "Cấu hình Route tables Ở phần này, chúng ta sẽ cấu hình route table ở từng VPC để route traffic tới các VPC thông qua Transit Gateway.\nChọn Route tables ở thanh bên trái. Chọn VPC A Private Route Table Chọn Routes Chọn Edit routes Chọn Add route. Destination: nhập 10.1.0.0/16 - Target: chọn Transit Gateway - VPC A Attachment Destination: nhập 10.2.0.0/16 - Target: chọn Transit Gateway - VPC A Attachment Chọn Save changes Route table đã được cập nhật. Lặp lại thêm Transit Gateway cho route table VPC B Private Route Table. Chọn Add route. Destination: nhập 10.0.0.0/16 - Target: chọn Transit Gateway - VPC B Attachment Destination: nhập 10.2.0.0/16 - Target: chọn Transit Gateway - VPC B Attachment Chọn Save changes Route table đã được cập nhật. Lặp lại thêm Transit Gateway cho route table VPC C Private Route Table. Chọn Add route. Destination: nhập 10.0.0.0/16 - Target: chọn Transit Gateway - VPC C Attachment Destination: nhập 10.1.0.0/16 - Target: chọn Transit Gateway - VPC C Attachment Chọn Save changes Route table đã được cập nhật. Bây giờ chúng ta hãy thử ping từ VPC A Private AZ1 Server đến private IP của VPC B Private AZ1 Server và VPC C Private AZ1 Server. Chúng ta sẽ thấy đã ping thành công. Chúng ta cũng có thể thử ping từ VPC B Private AZ1 Server đến private IP của VPC C Private AZ1 Server và ping cũng thành công. "
+},
+{
+	"uri": "/5-datacenterconnectivity/",
+	"title": "Kết nối với Datacenter",
+	"tags": [],
+	"description": "",
+	"content": "Kết nối với Datacenter VPN Site to Site dùng trong mô hình hybrid để thiết lập kết nối liên tục giữa môi trường datacenter truyền thống tới môi trường VPC của AWS. Việc thiết lập kết nối sẽ cần 2 đầu endpoint ở phía AWS và phía khách hàng. Để thiết lập kết nối VPN Site to Site, chúng ta sẽ cần tạo và cấu hình Virtual Private Gateway (VPG) và Customer Gateway (CGW).\nVPG là một trung tâm điều khiển kết nối virtual private network (VPN) được quản lý hoàn toàn bởi AWS. CGW là thành phần đại diện cho thiết bị VPN cứng hoặc mềm được cài đặt ở đầu Khách hàng. VPN tunnel sẽ được thiết lập ngay sau khi lưu lượng dữ liệu được truyền tải giữa AWS và hệ thống mạng của khách hàng. Trong kết nối đó, ta phải chỉ rõ loại định tuyến sẽ được sử dụng để đảm bảo an toàn cũng như chất lượng về mặt truyền tải dữ liệu.\nAmazon VPC cung cấp nhiều loại CGW và từng CGW được gán với một VPG nhưng 1 VPG có thể kết hợp với nhiều CGW (many-to-one design). Để hỗ trợ mô hình này thì địa chỉ IP của CGW phải là duy nhất trong một region.\nKết nối VPN luôn bao gồm 2 Internet Protocol Security (IPSec) tunnels để đảm bảo tính sẵn sàng cao của kết nối. Những đặc điểm quan trọng mà ta cần nắm về VPG, CGW và VPN:\nVPG là thành phần đầu cuối của VPN tunnel nằm trên AWS. CGW có thể là thiết bị phần cứng hoặc ứng dụng phần mềm nằm ở đầu Khách hàng trong kết nối VPN tunnel. Bạn phải khởi tạo kết nối VPN tunnel từ CGW tới VPG. VPG hỗ trợ cả dynamic routing (BGP) và static routing. Kết nối VPN luôn có 2 tunnels nhằm đảm bảo tính sẵn sàng cao cho kết nối với VPC từ phía Khách hàng. Trong bài lab này, chúng ta sẽ thiết lập một kết nối Site to Site VPN trong AWS. Trong thực tế, giải pháp này khá được ưa chuộng do ưu điểm giá thành rẻ, đồng thời rất dễ cấu hình do AWS cung cấp hướng dẫn cho từng loại thiết bị phía đầu Customer. Việc Customer bận tâm duy nhất đó là chuẩn bị đường internet để từ đó tạo đường hầm an toàn bí mật (sử dụng IPSec) kết nối tới AWS thông qua AWS VPN tunnel.\nTrong phạm vi bài lab, chúng ta sẽ cấu hình VPN để có thể từ instance ở On-premise (VPC On Premises) ping đến private IP của instance ở môi trường VPC trên AWS (VPC A, VPC B và VPC C) và ngược lại.\nNội dung Tạo môi trường datacenter Tạo Transit Gateway Attachments Cấu hình VPN Connection "
+},
+{
+	"uri": "/6-networkmonitoring/",
+	"title": "Giám sát mạng",
+	"tags": [],
+	"description": "",
+	"content": "VPC Flow Logs VPC Flow Logs là một dịch vụ của Amazon Web Services (AWS) cho phép bạn ghi lại thông tin chi tiết về lưu lượng mạng trong một mạng riêng ảo (Virtual Private Cloud - VPC) trên AWS. Khi kích hoạt VPC Flow Logs, AWS sẽ tự động lưu lại các thông tin về gói tin đi qua các thành phần mạng trong VPC, bao gồm địa chỉ nguồn và đích, cổng, giao thức và thời gian gửi/nhận.\nVới VPC Flow Logs, bạn có thể thu thập dữ liệu lưu lượng mạng để phân tích, giám sát và đánh giá hiệu suất hệ thống, giúp phát hiện các vấn đề bảo mật, kiểm tra cấu hình và tìm hiểu về quy trình làm việc của ứng dụng.\nDữ liệu từ VPC Flow Logs có thể được gửi đến nhiều dịch vụ khác nhau như Amazon S3, Amazon CloudWatch Logs hoặc Amazon Elasticsearch Service để phân tích và xử lý.\nAmazon CloudWatch Amazon CloudWatch là một dịch vụ giám sát và quản lý tài nguyên trên nền tảng Amazon Web Services (AWS). Nó cung cấp các công cụ để thu thập và theo dõi dữ liệu về các tài nguyên AWS, như EC2 instance, RDS, Auto Scaling Group, Elastic Load Balancer và nhiều dịch vụ khác.\nCloudWatch cho phép bạn giám sát các yếu tố quan trọng như tài nguyên mạng, CPU, bộ nhớ, lưu lượng mạng, lỗi ứng dụng và sự thay đổi trong môi trường AWS của bạn. Nó cung cấp các báo cáo, cảnh báo và dashboard dễ sử dụng để hiển thị dữ liệu giám sát.\nDữ liệu thu thập được từ CloudWatch có thể được sử dụng để phân tích hiệu suất, theo dõi và tăng cường hiệu quả hoạt động của hệ thống, cũng như giúp bạn phát hiện và khắc phục sự cố một cách nhanh chóng.\nTrong phần này, chúng ta sẽ thiết lập VPC Flow logs khi vi phạm ngưỡng, tạo Alarms và tạo Dashboards trong CloudWatch.\nNội dung Thiết lập VPC Flow logs Cấu hình CloudWatch "
+},
+{
+	"uri": "/7-cleanup/",
+	"title": "Dọn dẹp tài nguyên",
+	"tags": [],
+	"description": "",
+	"content": "Trong phần này, chúng ta sẽ tiến hành các bước sau để xóa các tài nguyên chúng ta đã tạo trong bài thực hành này.\nDọn dẹp tài nguyên Xóa CloudFormation Stack. Truy cập vào CloudFormation Chọn Stacks Lần lượt tick vào các CloudFormation Stack liên quan tới bài lab và chọn Delete Chọn Delete. Đợi vài phút cho tới khi CloudFormation Stacks xóa bỏ hết tài nguyên. Xóa Site-to-Site VPN connections. Nhập delete để xác nhận xóa. Chọn Delete. Xóa lần lượt các Transit gateway attachments. Nhập delete để xác nhận xóa. Chọn Delete. Xóa Transit gateway route tables. Nhập delete để xác nhận xóa. Chọn Delete. Xóa Transit gateways. Nhập delete để xác nhận xóa. Chọn Delete. Xóa CloudWatch Alarm. Xóa Log groups. Xóa Dashboards. "
+},
+{
+	"uri": "/categories/",
+	"title": "Categories",
+	"tags": [],
+	"description": "",
+	"content": ""
+},
+{
+	"uri": "/tags/",
+	"title": "Tags",
+	"tags": [],
+	"description": "",
+	"content": ""
+}]
